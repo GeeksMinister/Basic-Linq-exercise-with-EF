@@ -15,8 +15,9 @@ public static class Database
                 "  [3] Visa ämnens tabell och kolla om Contains Programmering 1\n\n" +
                 "  [4] Redigera ett ämne från Programmering 2 till OOP\n\n" +
                 "  [5] Redigera ett ämne från OOP till Programmering 2\n\n" +
-                "  [6] Uppdatera en student record om sina lärare är Anas till Reidar\n\n" +
-                "  [7] Avsluta \n\n\n" +
+                "  [6] Uppdatera student record om sina lärare är Anas till Reidar\n\n" +
+                "  [7] Omplacera Anas tillbaka\n\n" +
+                "  [8] Avsluta \n\n\n" +
                 "   \t-Var god och välj:  ");
             int.TryParse(ReadLine(), out int option);
             switch (option)
@@ -48,10 +49,15 @@ public static class Database
                     break;
                 case 6:
                     Clear();
-
+                    CheckTeachersID();
                     Redirecting();
                     break;
                 case 7:
+                    Clear();
+                    ReassignAnas();
+                    Redirecting();
+                    break;
+                case 8:
                     Clear();
                     WriteLine("\n\n\n\n\t\tHa a en bra dag :-)");
                     Thread.Sleep(1800);
@@ -138,9 +144,9 @@ public static class Database
         {
             foreach (PropertyInfo prop in row.GetType().GetProperties())
             {
-                if (prop.Name == "TeacherId" || prop.Name == "StudentId")
+                if (prop.Name == "TeacherId" || prop.Name == "StudentId" || prop.Name == "SubjectId")
                 {
-                    result.Append($"[{prop.GetValue(row).ToString()}]       ");
+                    result.Append($"[{prop.GetValue(row).ToString()}]  ");
                 }
                 else
                 {
@@ -226,24 +232,89 @@ public static class Database
         WriteLine("\n\n\t[OOP] har ändrats till [Programmering 2] ");
     }
 
-    private static void CheckTeacher()
+    private static void CheckTeachersID()
     {
         using Labb2_LinqContext context = new Labb2_LinqContext();
-        bool check = (from teacher in context.Teacher
-                      select teacher.FirstName).Contains("Anas");
-        if (check)
+        var studentAndTeachers = (from teacher in context.Teacher
+                                  from student in context.Student
+                                  from education in context.Education
+                                  where (education.Id == teacher.EducationId
+                                  && education.Id == student.EducationId)
+                                  select new
+                                  {
+                                      Education = education.Name,
+                                      TeacherId = teacher.Id,
+                                      TeacherName = teacher.FirstName + " " + teacher.LastName,
+                                      StudentId = student.Id,
+                                      StudentName = student.FirstName + " " + student.LastName,
+                                  }).ToList();
+        if (CheckAnas(studentAndTeachers))
         {
-            WriteLine("\n   Ämnen som är registrerad: \n\n");
-            context.Subject.Select(s => s.Name).Distinct().ToList().
-                ForEach(s => WriteLine($"\n\t{s}"));
-            WriteLine("\n\n   [Programmering 1] finns i ämnens tabell");
+            ChangeTeacher();
+            PrintSubjectsAndTeachers();
         }
         else
         {
-            Clear();
-            WriteLine("\n\n\t[Programmering 1] är inte registrerat!");
+            WriteLine("\n\n\t[Anas] undervisar inget ämne i någon utblidning!");
         }
+        
     }
 
+    private static bool CheckAnas(IEnumerable<dynamic> collection)
+    {
+        foreach (var row in collection)
+        {
+            foreach (PropertyInfo prop in row.GetType().GetProperties())
+            {
+                if (prop.GetValue(row).ToString() == "Anas Alhusain")
+                {
+
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void ChangeTeacher()
+    {
+        using Labb2_LinqContext context = new Labb2_LinqContext();
+        int AnasId = context.Teacher.Where(name => name.FirstName == "Anas").
+                Select(id => id.Id).First();
+        int ReidarId = context.Teacher.Where(name => name.FirstName == "Reidar").
+            Select(id => id.Id).First();
+
+        context.Subject.Where(s => s.TeacherId == AnasId)
+            .ToList().ForEach(s => s.TeacherId = ReidarId);
+        context.SaveChanges();
+    }
+
+    private static void PrintSubjectsAndTeachers()
+    {
+        using Labb2_LinqContext context = new Labb2_LinqContext();
+        var SubjectsAndTeachers = (from teacher in context.Teacher
+                                  from subject in context.Subject
+                                  from education in context.Education
+                                  where (education.Id == teacher.EducationId
+                                  && teacher.Id == subject.TeacherId)
+                                  orderby education.Name
+                                  select new
+                                  {
+                                      Education = education.Name,
+                                      TeacherId = teacher.Id,
+                                      TeacherName = teacher.FirstName + " " + teacher.LastName,
+                                      SubjectId = subject.Id,
+                                      SubjectName = subject.Name,
+                                  }).ToList();
+        PrintRows(SubjectsAndTeachers);
+    }
+
+    private static void ReassignAnas()
+    {
+        using Labb2_LinqContext context = new Labb2_LinqContext();
+        context.Subject.Where(s => s.Name == "Utveckling Med C#").ToList().ForEach(s => s.TeacherId = 1);
+        context.SaveChanges();
+        PrintSubjectsAndTeachers();
+    }
 }
 
