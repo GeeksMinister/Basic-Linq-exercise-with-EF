@@ -4,12 +4,19 @@ using System.Reflection;
 public static class Database
 {
 #pragma warning disable CS8602
+#pragma warning disable CA1416
+
+    public static void SetConsoleSize()
+    {
+        SetWindowSize(150, 45);
+    }
+
     public static void PrintMenu()
     {
         while (true)
         {
             Clear();
-            Write($"\n\t\t\t* (( Labb2 - LINQ )) * \n\n\n"+
+            Write($"\n\t\t\t\t* ((\tLabb2 - LINQ\t)) * \n\n\n"+
                 "  [1] Hämta alla lärare som undervisar Matte\n\n" +
                 "  [2] Hämta alla elever med sina lärare\n\n" +
                 "  [3] Visa ämnens tabell och kolla om Contains Programmering 1\n\n" +
@@ -59,7 +66,7 @@ public static class Database
                     break;
                 case 8:
                     Clear();
-                    WriteLine("\n\n\n\n\t\tHa a en bra dag :-)");
+                    WriteLine("\n\n\n\n\t\tHa en bra dag :-)");
                     Thread.Sleep(1800);
                     return;
                 default:
@@ -70,6 +77,7 @@ public static class Database
             }
         }
     }
+
     private static void Redirecting()
     {
         Write("\n\n\n\t\tTryck 'Enter' för att återkomma till menyn igen");
@@ -101,7 +109,6 @@ public static class Database
             IEnumerable<dynamic>? teachers = collection as IEnumerable<dynamic>;
             PrintResultedTable(teachers);
         }
-
     }
 
     private static void PrintTeachers(List<Teacher>? teachers)
@@ -166,7 +173,7 @@ public static class Database
                       select subject.Name).Contains("Programmering 1");
         if (check)
         {
-            WriteLine("\n   Ämnen som är registrerad: \n\n");
+            WriteLine("\n   Ämnen som är registrerad: \n");
             context.Subject.Select(s => s.Name).Distinct().ToList().
                 ForEach(s => WriteLine($"\n\t{s}"));
             WriteLine("\n\n   [Programmering 1] finns i ämnens tabell");
