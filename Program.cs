@@ -1,7 +1,6 @@
-﻿
+﻿#pragma warning disable CA1416
 
-
-Database.SetConsoleSize();
+SetWindowSize(150, 45);
 
 
 Database.PrintMenu();

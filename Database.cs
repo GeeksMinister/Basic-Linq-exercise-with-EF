@@ -5,12 +5,6 @@ public static class Database
 {
 #pragma warning disable CS8602
 #pragma warning disable CA1416
-
-    public static void SetConsoleSize()
-    {
-        SetWindowSize(150, 45);
-    }
-
     public static void PrintMenu()
     {
         while (true)

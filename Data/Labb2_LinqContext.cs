@@ -17,10 +17,13 @@
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder. UseSqlServer("Server=(LocalDB)\\MSSQLLocalDB; Database=Labb2_Linq;" +
-                " Trusted_Connection=True; MultipleActiveResultSets=True");
-        }
+
+        //if (!optionsBuilder.IsConfigured)
+        //{
+        //    optionsBuilder. UseSqlServer("Server=(LocalDB)\\MSSQLLocalDB; Database=Labb2_Linq;" +
+        //        " Trusted_Connection=True; MultipleActiveResultSets=True");
+        //}
+        var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        optionsBuilder.UseSqlServer(configuration["ConnectionStrings:DefaultConnection"]);
     }
 }
